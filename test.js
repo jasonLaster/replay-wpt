@@ -27,28 +27,29 @@ async function runTest(url) {
   let page, browser;
   try {
     console.log(`Running ${url}...`);
-    browser = await env.browser.launch({
-      headless: true,
-      executablePath: env.executablePath,
-      env: {
-        ...process.env,
-        RECORD_ALL_CONTENT: 1,
-        RECORD_REPLAY_METADATA: JSON.stringify({
-          title: url,
-        }),
-      },
-    });
+    browser = await env.browser
+      .launch({
+        headless: true,
+        executablePath: env.executablePath,
+        env: {
+          ...process.env,
+          RECORD_ALL_CONTENT: 1,
+          RECORD_REPLAY_METADATA: JSON.stringify({
+            title: url,
+          }),
+        },
+      })
+      .catch(() => {});
     page = await browser.newPage();
-    await page.goto(`${host}${url}`);
+    await page.goto(`${host}${url}`).catch(() => {});
     await page
       .waitForSelector(".pass,.fail", { timeout: 10_000 })
       .catch(() => {});
-    // await page.waitForTimeout(5_000);
   } catch (e) {
     console.log(url, e);
   } finally {
-    await page.close();
-    await browser.close();
+    await page.close().catch(() => {});
+    await browser.close().catch(() => {});
   }
 }
 
@@ -84,6 +85,16 @@ async function runTests(tests) {
     console.log(e);
   }
 }
+
+process.on("uncaughtException", (error) => {
+  // Handle the error here
+  console.error("uncaught", error);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  // Handle the rejection here
+  console.error("Unhandled rejection:", reason);
+});
 
 (async () => {
   if (process.env.CI) {
