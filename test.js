@@ -60,30 +60,25 @@ async function runTest(url) {
 
 async function uploadRecordings() {
   const recs = await replay.listAllRecordings();
-  for (const rec of recs) {
-    if (rec.status == "onDisk") {
-      await replay.addLocalRecordingMetadata(rec.id, {
-        public: true,
-      });
+  return Promise.all(
+    recs.map(async (rec) => {
+      if (rec.status == "onDisk") {
+        await replay.addLocalRecordingMetadata(rec.id, {
+          public: true,
+        });
 
-      await replay.uploadRecording(rec.id, {
-        apiKey: process.env.REPLAY_API_KEY,
-        verbose: true,
-      });
-    }
-  }
+        await replay.uploadRecording(rec.id, {
+          apiKey: process.env.REPLAY_API_KEY,
+          verbose: true,
+        });
+      }
+    })
+  );
 }
 
 async function runTests(tests) {
-  for (const url of tests) {
-    try {
-      await runTest(url);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
   try {
+    await Promise.all(tests.map(runTest));
     await uploadRecordings();
   } catch (e) {
     console.log(e);
@@ -102,7 +97,7 @@ process.on("unhandledRejection", (reason, promise) => {
 
 (async () => {
   if (process.env.CI) {
-    for (const urls of _.chunk(tests, 10)) {
+    for (const urls of _.chunk(tests, 5)) {
       try {
         await runTests(urls);
       } catch (e) {
