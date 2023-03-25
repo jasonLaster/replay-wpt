@@ -1,4 +1,3 @@
-dom/abort/crashtests/timeout-close.html
 dom/abort/reason-constructor.html
 dom/attributes-are-nodes.html
 dom/collections/HTMLCollection-as-prototype.html
@@ -401,3 +400,4 @@ dom/historical.html
 dom/svg-insert-crash.html
 dom/interface-objects.html		
 dom/window-extends-event-target.html
+dom/abort/crashtests/timeout-close.html
