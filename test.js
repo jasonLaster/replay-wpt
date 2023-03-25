@@ -97,7 +97,7 @@ process.on("unhandledRejection", (reason, promise) => {
 
 (async () => {
   if (process.env.CI) {
-    for (const urls of _.chunk(tests, 5)) {
+    for (const urls of _.chunk(tests, 10)) {
       try {
         await runTests(urls);
       } catch (e) {
