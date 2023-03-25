@@ -19,14 +19,16 @@ const env = process.env.CI
 
 console.log(`Executing`, env.executablePath);
 
+let counter = 1;
 async function runTest(url) {
   if (!url) {
     return;
   }
 
+  let start = new Date();
+
   let page, browser;
   try {
-    console.log(`Running ${url}...`);
     browser = await env.browser
       .launch({
         headless: true,
@@ -45,6 +47,9 @@ async function runTest(url) {
     await page
       .waitForSelector(".pass,.fail", { timeout: 10_000 })
       .catch(() => {});
+    console.log(
+      `${counter++}. ${url} ${Math.round((new Date() - start) / 1000)}s`
+    );
   } catch (e) {
     console.log(url, e);
   } finally {
@@ -60,14 +65,13 @@ async function uploadRecordings() {
       await replay.addLocalRecordingMetadata(rec.id, {
         public: true,
       });
+
+      await replay.uploadRecording(rec.id, {
+        apiKey: process.env.REPLAY_API_KEY,
+        verbose: true,
+      });
     }
   }
-
-  await replay.uploadAllRecordings({
-    apiKey: process.env.REPLAY_API_KEY,
-    verbose: true,
-    public: true,
-  });
 }
 
 async function runTests(tests) {
