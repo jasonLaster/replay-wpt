@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "playwright": "1.18"
+  },
+  "devDependencies": {
+    "@replayio/playwright": "^0.3.27"
+  }
+}
