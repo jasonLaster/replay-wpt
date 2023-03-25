@@ -1,8 +1,10 @@
 {
   "dependencies": {
+    "lodash": "^4.17.21",
     "playwright": "1.18"
   },
   "devDependencies": {
-    "@replayio/playwright": "^0.3.27"
+    "@replayio/playwright": "^0.3.27",
+    "@replayio/replay": "^0.12.7"
   }
 }
