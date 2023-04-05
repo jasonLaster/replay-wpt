@@ -3,6 +3,9 @@ name: WPT Tests
 on: [push]
 
 jobs:
+  matrix:
+    stripe: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+
   build:
     runs-on: ubuntu-latest
 
@@ -21,4 +24,5 @@ jobs:
         run: node test.js
         env:
           CI: true
+          STRIPE: ${{ matrix.stripe }}/20
           RECORD_REPLAY_API_KEY: rwk_itTwNSTgH7LCdRJBiL76KLkSHN7nh0Y5mHvZQfVYxkk

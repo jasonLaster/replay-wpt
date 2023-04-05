@@ -6,6 +6,7 @@ const _ = require("lodash");
 
 const tests = fs.readFileSync("tests.txt", "utf-8").split("\n");
 const host = "https://wpt.live/";
+const [currentStripe, totalStripes] = (process.env.STRIPE || "1/1").split('/').map(n => parseInt(n, 10));
 
 const env = process.env.CI
   ? {
@@ -77,8 +78,11 @@ async function uploadRecordings() {
 }
 
 async function runTests(tests) {
+  const testsPerStripe = Math.ceil(tests.length / totalStripes)
+  const start = testsPerStripe * (currentStripe - 1);
+  const testsToRun = tests.slice(start, Math.min(start + testsPerStripe, tests.length));
   try {
-    await Promise.all(tests.map(runTest));
+    await Promise.all(testsToRun.map(runTest));
     await uploadRecordings();
   } catch (e) {
     console.log(e);
@@ -97,12 +101,10 @@ process.on("unhandledRejection", (reason, promise) => {
 
 (async () => {
   if (process.env.CI) {
-    for (const urls of _.chunk(tests, 10)) {
-      try {
-        await runTests(urls);
-      } catch (e) {
-        console.log(e);
-      }
+    try {
+      await runTests(tests);
+    } catch (e) {
+      console.log(e);
     }
   } else {
     await runTests(tests.slice(0, 3));
