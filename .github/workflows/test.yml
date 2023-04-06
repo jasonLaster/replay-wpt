@@ -1,14 +1,20 @@
 name: WPT Tests
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      pattern:
+        description: "File name pattern"
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        stripe: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-  
+      fail-fast: false
+      max-parallel: 5
+      matrix: ${{ fromJSON(inputs.pattern && '{"stripe":[1]}'|| '{"stripe":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]}') }}
     steps:
       - uses: actions/checkout@v2
 
@@ -21,8 +27,8 @@ jobs:
         run: npm install
 
       - name: Run tests
-        run: node test.js
+        run: node test.js ${{ inputs.pattern }}
         env:
           CI: true
-          STRIPE: ${{ matrix.stripe }}/20
+          STRIPE: ${{ matrix.stripe }}/${{ inputs.pattern && 1 || 20 }}
           RECORD_REPLAY_API_KEY: rwk_itTwNSTgH7LCdRJBiL76KLkSHN7nh0Y5mHvZQfVYxkk
