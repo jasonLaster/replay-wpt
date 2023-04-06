@@ -4,9 +4,10 @@ const { getExecutablePath } = require("@replayio/playwright");
 const replay = require("@replayio/replay");
 const _ = require("lodash");
 
-const tests = fs.readFileSync("tests.txt", "utf-8").split("\n");
+const tests = fs.readFileSync("tests.txt", "utf-8").split("\n").filter(Boolean);
 const host = "https://wpt.live/";
 const [currentStripe, totalStripes] = (process.env.STRIPE || "1/1").split('/').map(n => parseInt(n, 10));
+const [,,pattern] = process.argv;
 
 const env = process.env.CI
   ? {
@@ -78,6 +79,17 @@ async function uploadRecordings() {
 }
 
 async function runTests(tests) {
+  if (pattern) {
+    tests = tests.filter(t => {
+      return t.toLowerCase().includes(pattern.toLowerCase());
+    });
+
+    if (tests.length === 0) {
+      console.error("No tests matched pattern");
+      return;
+    }
+  }
+
   const testsPerStripe = Math.ceil(tests.length / totalStripes)
   const start = testsPerStripe * (currentStripe - 1);
   const testsToRun = tests.slice(start, Math.min(start + testsPerStripe, tests.length));
