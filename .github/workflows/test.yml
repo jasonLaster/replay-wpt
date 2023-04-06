@@ -34,4 +34,9 @@ jobs:
         env:
           CI: true
           STRIPE: ${{ matrix.stripe }}/${{ inputs.pattern && 5 || 20 }}
-          RECORD_REPLAY_API_KEY: rwk_itTwNSTgH7LCdRJBiL76KLkSHN7nh0Y5mHvZQfVYxkk
+
+      - name: Upload Replays
+        uses: replayio/action-upload@v0.4.7
+        with:
+          api-key: rwk_itTwNSTgH7LCdRJBiL76KLkSHN7nh0Y5mHvZQfVYxkk
+          public: true

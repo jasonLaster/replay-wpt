@@ -60,24 +60,6 @@ async function runTest(url) {
   }
 }
 
-async function uploadRecordings() {
-  const recs = await replay.listAllRecordings();
-  return Promise.all(
-    recs.map(async (rec) => {
-      if (rec.status == "onDisk") {
-        await replay.addLocalRecordingMetadata(rec.id, {
-          public: true,
-        });
-
-        await replay.uploadRecording(rec.id, {
-          apiKey: process.env.REPLAY_API_KEY,
-          verbose: true,
-        });
-      }
-    })
-  );
-}
-
 async function runTests(tests) {
   if (pattern) {
     tests = tests.filter(t => {
@@ -95,7 +77,6 @@ async function runTests(tests) {
   const testsToRun = tests.slice(start, Math.min(start + testsPerStripe, tests.length));
   try {
     await Promise.all(testsToRun.map(runTest));
-    await uploadRecordings();
   } catch (e) {
     console.log(e);
   }
