@@ -1,4 +1,3 @@
-const pMap = require("p-map");
 const { chromium, firefox } = require("playwright");
 const fs = require("node:fs");
 const { getExecutablePath } = require("@replayio/playwright");
@@ -91,7 +90,9 @@ async function runTests(tests) {
     console.log("Running", testsToRun.length, "tests");
     console.log(testsToRun.map((t) => "  " + t).join("\n"));
 
-    await pMap(testsToRun, runTest, { concurrency: 10 });
+    for (let i = 0; i < testsToRun.length; i++) {
+      await runTest(testsToRun[i]);
+    }
   } catch (e) {
     console.log(e);
   }
