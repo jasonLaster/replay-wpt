@@ -76,6 +76,9 @@ async function runTests(tests) {
   const start = testsPerStripe * (currentStripe - 1);
   const testsToRun = tests.slice(start, Math.min(start + testsPerStripe, tests.length));
   try {
+    console.log("Running", testsToRun.length, "tests");
+    console.log(testToRun.map(t => "  " + t).join("\n"));
+
     await Promise.all(testsToRun.map(runTest));
   } catch (e) {
     console.log(e);
