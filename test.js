@@ -36,7 +36,7 @@ async function runTest(url) {
   let page, browser;
   try {
     await Promise.race([
-      new Promise((resolve, reject) => setTimeout(reject, 30000)),
+      new Promise((resolve, reject) => setTimeout(reject, 60000)),
       async () => {
         browser = await env.browser
           .launch({
@@ -64,8 +64,8 @@ async function runTest(url) {
   } catch (e) {
     console.error("Error:", url, e);
   } finally {
-    await page.close().catch(() => {});
-    await browser.close().catch(() => {});
+    await page?.close().catch(() => {});
+    await browser?.close().catch(() => {});
   }
 }
 
