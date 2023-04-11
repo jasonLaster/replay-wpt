@@ -30,6 +30,7 @@ jobs:
         run: npm install
 
       - name: Run tests
+        timeout-minutes: 30
         run: node test.js ${{ inputs.pattern }}
         env:
           CI: true
