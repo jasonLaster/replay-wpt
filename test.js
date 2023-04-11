@@ -34,32 +34,32 @@ async function runTest(url) {
 
   let page, browser;
   try {
-    await Promise.race([
-      new Promise((resolve, reject) => setTimeout(reject, 60000)),
-      async () => {
-        browser = await env.browser
-          .launch({
-            headless: true,
-            executablePath: env.executablePath,
-            env: {
-              ...process.env,
-              RECORD_ALL_CONTENT: 1,
-              RECORD_REPLAY_METADATA: JSON.stringify({
-                title: url,
-              }),
-            },
-          })
-          .catch(() => {});
-        page = await browser.newPage();
-        await page.goto(`${host}${url}`).catch(() => {});
-        await page
-          .waitForSelector(".pass,.fail", { timeout: 10_000 })
-          .catch(() => {});
-        console.log(
-          `${counter++}. ${url} ${Math.round((new Date() - start) / 1000)}s`
-        );
-      },
-    ]);
+    // await Promise.race([
+    //   new Promise((resolve, reject) => setTimeout(reject, 60000)),
+    //   async () => {
+    browser = await env.browser
+      .launch({
+        headless: true,
+        executablePath: env.executablePath,
+        env: {
+          ...process.env,
+          RECORD_ALL_CONTENT: 1,
+          RECORD_REPLAY_METADATA: JSON.stringify({
+            title: url,
+          }),
+        },
+      })
+      .catch(() => {});
+    page = await browser.newPage();
+    await page.goto(`${host}${url}`).catch(() => {});
+    await page
+      .waitForSelector(".pass,.fail", { timeout: 10_000 })
+      .catch(() => {});
+    console.log(
+      `${counter++}. ${url} ${Math.round((new Date() - start) / 1000)}s`
+    );
+    //   },
+    // ]);
   } catch (e) {
     console.error("Error:", url, e);
   } finally {
