@@ -1,3 +1,4 @@
+const pMap = require("p-map");
 const { chromium, firefox } = require("playwright");
 const fs = require("node:fs");
 const { getExecutablePath } = require("@replayio/playwright");
@@ -6,8 +7,10 @@ const _ = require("lodash");
 
 const tests = fs.readFileSync("tests.txt", "utf-8").split("\n").filter(Boolean);
 const host = "https://wpt.live/";
-const [currentStripe, totalStripes] = (process.env.STRIPE || "1/1").split('/').map(n => parseInt(n, 10));
-const [,,pattern] = process.argv;
+const [currentStripe, totalStripes] = (process.env.STRIPE || "1/1")
+  .split("/")
+  .map((n) => parseInt(n, 10));
+const [, , pattern] = process.argv;
 
 const env = process.env.CI
   ? {
@@ -27,6 +30,7 @@ async function runTest(url) {
     return;
   }
 
+  console.log("Running", url);
   let start = new Date();
 
   let page, browser;
@@ -62,7 +66,7 @@ async function runTest(url) {
 
 async function runTests(tests) {
   if (pattern) {
-    tests = tests.filter(t => {
+    tests = tests.filter((t) => {
       return t.toLowerCase().includes(pattern.toLowerCase());
     });
 
@@ -72,14 +76,17 @@ async function runTests(tests) {
     }
   }
 
-  const testsPerStripe = Math.ceil(tests.length / totalStripes)
+  const testsPerStripe = Math.ceil(tests.length / totalStripes);
   const start = testsPerStripe * (currentStripe - 1);
-  const testsToRun = tests.slice(start, Math.min(start + testsPerStripe, tests.length));
+  const testsToRun = tests.slice(
+    start,
+    Math.min(start + testsPerStripe, tests.length)
+  );
   try {
     console.log("Running", testsToRun.length, "tests");
-    console.log(testToRun.map(t => "  " + t).join("\n"));
+    console.log(testsToRun.map((t) => "  " + t).join("\n"));
 
-    await Promise.all(testsToRun.map(runTest));
+    await pMap(testsToRun, runTest, { concurrency: 10 });
   } catch (e) {
     console.log(e);
   }
