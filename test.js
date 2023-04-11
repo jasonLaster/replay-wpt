@@ -82,6 +82,7 @@ async function runTests(tests) {
   }
 }
 
+process.setMaxListeners(0);
 process.on("uncaughtException", (error) => {
   // Handle the error here
   console.error("uncaught", error);
