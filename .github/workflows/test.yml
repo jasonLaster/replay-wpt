@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 10
       matrix: ${{ fromJSON(inputs.pattern && '{"stripe":[1,2,3,4,5]}' || '{"stripe":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]}') }}
     env:
       RECORD_REPLAY_CHROMIUM_DOWNLOAD_FILE: ${{ inputs.chromium-build-id && format('{0}.tar.xz', inputs.chromium-build-id) }}
@@ -33,7 +33,7 @@ jobs:
         run: npx @replayio/playwright install
 
       - name: Run tests
-        timeout-minutes: 30
+        timeout-minutes: 60
         run: node test.js ${{ inputs.pattern }}
         env:
           CI: true
