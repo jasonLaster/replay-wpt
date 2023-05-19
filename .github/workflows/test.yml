@@ -34,7 +34,7 @@ jobs:
 
       - name: Run tests
         timeout-minutes: 60
-        run: node test.js ${{ inputs.pattern }}
+        run: node test.js -b chromium ${{ inputs.pattern }}
         env:
           CI: true
           STRIPE: ${{ matrix.stripe }}/${{ inputs.pattern && 5 || 30 }}

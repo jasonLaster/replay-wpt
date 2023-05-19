@@ -1,7 +1,7 @@
-const { chromium, firefox } = require("playwright");
+const { program } = require("commander");
+const playwright = require("playwright");
 const fs = require("node:fs");
 const { getExecutablePath } = require("@replayio/playwright");
-const replay = require("@replayio/replay");
 const _ = require("lodash");
 
 const tests = fs.readFileSync("tests.txt", "utf-8").split("\n").filter(Boolean);
@@ -9,38 +9,59 @@ const host = "https://wpt.live/";
 const [currentStripe, totalStripes] = (process.env.STRIPE || "1/1")
   .split("/")
   .map((n) => parseInt(n, 10));
-const [, , pattern] = process.argv;
 
-const env = process.env.CI
-  ? {
-      browser: chromium,
-      executablePath: getExecutablePath("chromium"),
+program
+  .option("-b, --browser [browser]", "Browser type", "chromium")
+  .option(
+    "-e, --executable-path [executablePath]",
+    "Path to browser executable"
+  )
+  .argument("[pattern]")
+  .action(async (pattern, opts) => {
+    try {
+      if (!opts.browser) {
+        if (!opts.executablePath) {
+          throw new Error("Either brower or executable path is required.");
+        } else {
+          opts.browser =
+            opts.executablePath.includes("chrome") ||
+            opts.executablePath.includes("chromium")
+              ? "chromium"
+              : "firefox";
+        }
+      } else {
+        opts.executablePath =
+          opts.executablePath || getExecutablePath(opts.browser);
+      }
+
+      console.log(`Executing`, opts.executablePath);
+
+      await runTests(tests, { ...opts, pattern });
+    } catch (e) {
+      console.log(e);
     }
-  : {
-      browser: firefox,
-      executablePath: getExecutablePath("firefox"),
-    };
+  });
 
-console.log(`Executing`, env.executablePath);
+program.parse(process.argv);
 
 let counter = 1;
-async function runTest(url) {
+async function runTest(
+  url,
+  { browser: browserName = "chromium", executablePath } = {}
+) {
   if (!url) {
     return;
   }
 
-  console.log("Running", url);
+  console.log("Running", url, "with", browserName);
   let start = new Date();
 
   let page, browser;
   try {
-    // await Promise.race([
-    //   new Promise((resolve, reject) => setTimeout(reject, 60000)),
-    //   async () => {
-    browser = await env.browser
+    browser = await playwright[browserName]
       .launch({
         headless: true,
-        executablePath: env.executablePath,
+        executablePath,
         env: {
           ...process.env,
           RECORD_ALL_CONTENT: 1,
@@ -58,8 +79,6 @@ async function runTest(url) {
     console.log(
       `${counter++}. ${url} ${Math.round((new Date() - start) / 1000)}s`
     );
-    //   },
-    // ]);
   } catch (e) {
     console.error("Error:", url, e);
   } finally {
@@ -68,10 +87,10 @@ async function runTest(url) {
   }
 }
 
-async function runTests(tests) {
-  if (pattern) {
+async function runTests(tests, opts) {
+  if (opts.pattern) {
     tests = tests.filter((t) => {
-      return t.toLowerCase().includes(pattern.toLowerCase());
+      return t.toLowerCase().includes(opts.pattern.toLowerCase());
     });
 
     if (tests.length === 0) {
@@ -88,10 +107,10 @@ async function runTests(tests) {
   );
   try {
     console.log("Running", testsToRun.length, "tests");
-    console.log(testsToRun.map((t) => "  " + t).join("\n"));
+    // console.log(testsToRun.map((t) => "  " + t).join("\n"));
 
     for (let i = 0; i < testsToRun.length; i++) {
-      await runTest(testsToRun[i]);
+      await runTest(testsToRun[i], opts);
     }
   } catch (e) {
     console.log(e);
@@ -108,15 +127,3 @@ process.on("unhandledRejection", (reason, promise) => {
   // Handle the rejection here
   console.error("Unhandled rejection:", reason);
 });
-
-(async () => {
-  if (process.env.CI) {
-    try {
-      await runTests(tests);
-    } catch (e) {
-      console.log(e);
-    }
-  } else {
-    await runTests(tests.slice(0, 3));
-  }
-})();
